@@ -3,37 +3,27 @@
 //#region フィールド変数
 
 // アクセス情報は外部に記載
-var ACCESS_TOKEN = SpreadsheetApp.getActiveSpreadsheet()
-  .getSheetByName("hidden")
-  .getRange(1, 2)
-  .getValue();
-  
-var loveGroupId = SpreadsheetApp.getActiveSpreadsheet()
-  .getSheetByName("hidden")
-  .getRange(2, 2)
-  .getValue();
+var ACCESS_TOKEN = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("hidden").getRange(1, 2).getValue();
+
+var loveGroupId = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("hidden").getRange(2, 2).getValue();
 
 // 経費申請フォームURL
-var budgetFormURL = SpreadsheetApp.getActiveSpreadsheet()
-  .getSheetByName("hidden")
-  .getRange(3, 2)
-  .getValue();
+var budgetFormURL = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("hidden").getRange(3, 2).getValue();
 
 // スプレッドシートURL
-var budgetSheetURL = SpreadsheetApp.getActiveSpreadsheet()
-  .getSheetByName("hidden")
-  .getRange(4, 2)
-  .getValue();
+var budgetSheetURL = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("hidden").getRange(4, 2).getValue();
 
 // 市のゴミ情報 URL
-var garbageCityInfoURL = SpreadsheetApp.getActiveSpreadsheet()
-.getSheetByName("hidden")
-.getRange(5, 2)
-.getValue();
+var garbageCityInfoURL = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("hidden").getRange(5, 2).getValue();
 
 //シートの情報を取得
 // `ゴミ情報`シート
 var garbageSpreadSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("ゴミ情報");
+var garbageSsLastRow = garbageSpreadSheet.getLastRow();
+var garbageSsLastColumn = garbageSpreadSheet.getLastColumn();
+
+// `経費管理表`シート
+var garbageSpreadSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("経費管理表");
 var garbageSsLastRow = garbageSpreadSheet.getLastRow();
 var garbageSsLastColumn = garbageSpreadSheet.getLastColumn();
 
@@ -58,12 +48,6 @@ function doPost(e) {
   //ユーザーIDからプロフィール情報を抜き出すリクエストURL
   var getProfileUrl = "https://api.line.me/v2/bot/profile/" + userId;
 
-  // 2020/04/25 17:27:12 初期にグループIDを取得するための記述
-  SpreadsheetApp.getActiveSpreadsheet()
-  .getSheetByName("hidden")
-  .getRange(2, 2)
-  .setValue(groupId);
-
   // ユーザーからの受信MSGによって処理を分岐
   if (
     // ゴミを出した時
@@ -83,12 +67,6 @@ function doPost(e) {
   ) {
     sendForgetGarbageMsg(replyToken);
   } else if (
-    // オウム返しをする時
-    userMsg.indexOf("欲しい") !== -1
-  ) {
-    var text = userMsg + "ンゴ";
-    sendReplyMsg(text, replyToken);
-  } else if (
     // 経費申請のフォームを呼び出すとき
     userMsg === "経費申請"
   ) {
@@ -96,6 +74,14 @@ function doPost(e) {
     text += "経費はここから申請してくれ！\n";
     text += budgetFormURL;
     sendReplyMsg(text, replyToken);
+  } else if (
+    // 経費情報をお知らせする
+    userMsg === "経費"
+    ) {
+      var text = "経費合計は" + notifyExpenseSum().toLocaleString() + "円です。\n";
+      text += "詳細はこちらを確認して下さい\n";
+      text += budgetSheetURL;
+      sendReplyMsg(text, replyToken);
   }
 }
 
@@ -159,98 +145,31 @@ function notifyGarbageKind() {
 
 //#endregion ゴミ出し関連メソッド
 
-//#region 家賃お知らせ関連メソッド
+//#region 家計簿お知らせ関連メソッド
 
 /**
- * 家賃を月末までに支払うように通知する
+ * 経費の合計額をお知らせする
+ * @return {int} sumPrice
  */
-function notifyRentDay() {
-  // 今日を取得
-  var today = new Date();
-  // 翌月を取得
-  var nextMonth = Utilities.formatDate(new Date(today.getFullYear(), today.getMonth() + 1), "Asia/Tokyo", "yyyy年M月");
+function notifyExpenseSum() {
 
-  // 送信メッセージ本文を作成
-  var text = "【家賃の支払い時期になりました】\n";
-  text += nextMonth + "分の家賃の支払いを、今月末までにお願いしますm(_ _ )m";
-  text += "支払状況は下記の`収入明細表`シートからご確認ください\n";
-  text += budgetSheetURL;
+  // 経費管理表シートを配列で取得
+  var arrGarbageInfo = garbageSpreadSheet.getRange(2, 1, garbageSsLastRow, garbageSsLastColumn).getValues();
 
-  // MSG送信
-  msgSender(text, loveGroupId);
-}
+  var priceIndex = 8;
+  // 合計値格納用変数を定義
+  var sumPrice = 0;
 
-/**
- * 翌月分の家賃を支払った人のリストを通知する
- */
-function notifyPaidPerson() {
-  // 今日を取得
-  var today = new Date();
-  // 翌月を取得
-  var nextMonth = new Date(today.getFullYear(), today.getMonth() + 1);
-
-  // 家賃支払者リストを取得
-  var arrPaidList = pickPaidPersonArray(nextMonth);
-
-  // 収入発生日(家賃支払日)インデックス
-  var incomeDateIndex = 0;
-  // 金額インデックス
-  var incomeAmountIndex = 2;
-  // 支払者インデックス
-  var incomePersonIndex = 4;
-
-  // 通知用にDate型をフォーマット
-  var todayFormatted = Utilities.formatDate(today, "Asia/Tokyo", "yyyy年M月d日");
-  var nextMonthFormatted = Utilities.formatDate(nextMonth, "Asia/Tokyo", "yyyy年M月");
-
-  // MSG作成
-  var text = "【" + nextMonthFormatted + "分 家賃支払い状況】\n";
-  if (arrPaidList.length !== 0) {
-    arrPaidList.forEach(function(item) {
-      text +=
-        "支払日: " +
-        Utilities.formatDate(item[incomeDateIndex], "Asia/Tokyo", "M/d") +
-        ", 支払者: " +
-        item[incomePersonIndex] +
-        ", 金額:" +
-        item[incomeAmountIndex].toLocaleString() +
-        "円\n";
-    });
-    text += "\n";
-  } else {
-    text += "まだ誰からも家賃もらってません…早く払って…(´・ω・`)\n";
-  }
-
-  text += "支払状況は下記の`収入明細表`シートからご確認ください\n";
-  text += budgetSheetURL;
-
-  // MSG送信
-  msgSender(text, loveGroupId);
-}
-
-/**
- * 集計月の家賃を支払った人のリストを作成する
- * @param {Date} pickMonth 集計月
- * @returns {Array[][]} `収入明細表`シートの`収入項目`が家賃収入かつ`収入計上月`が pickmonth の項目
- */
-function pickPaidPersonArray(pickMonth) {
-  // 収入明細表シートを配列で取得
-  var arrIncomeList = incomeSpreadSheet.getRange(2, 1, incomeSsLastRow, incomeSsLastColumn).getValues();
-
-  // 収入項目インデックス
-  var incomeTypeIndex = 1;
-  // 収入計上月インデックス
-  var incomeMonthIndex = 3;
-
-  // 翌月分の家賃収入の配列を作成
-  var arrPaidList = arrIncomeList.filter(function(item) {
-    return item[incomeMonthIndex].toString() === pickMonth.toString() && item[incomeTypeIndex] === "家賃収入";
+  // 配列を回す
+  arrGarbageInfo.forEach(function(item){
+    sumPrice += item[priceIndex];
   });
-
-  return arrPaidList;
+  
+  return sumPrice;
+  
 }
 
-//#endregion 家賃お知らせ関連メソッド
+//#endregion 家計簿お知らせ関連メソッド
 
 //#region 共通モジュール
 
@@ -266,21 +185,21 @@ function msgSender(msgText, sendToID) {
     messages: [
       {
         type: "text",
-        text: msgText
-      }
-    ]
+        text: msgText,
+      },
+    ],
   };
 
   var url = "https://api.line.me/v2/bot/message/push";
   var headers = {
     "Content-Type": "application/json",
-    Authorization: "Bearer " + ACCESS_TOKEN
+    Authorization: "Bearer " + ACCESS_TOKEN,
   };
 
   var options = {
     method: "post",
     headers: headers,
-    payload: JSON.stringify(postData)
+    payload: JSON.stringify(postData),
   };
   var response = UrlFetchApp.fetch(url, options);
 }
@@ -296,12 +215,12 @@ function getUserInfo(userId) {
   //ユーザー情報をGetするためのhttpリクエストを作成するためのヘッダとボディを作成
   var headers = {
     "Content-Type": "application/json",
-    Authorization: "Bearer " + ACCESS_TOKEN
+    Authorization: "Bearer " + ACCESS_TOKEN,
   };
   var options = {
     method: "get",
     headers: headers,
-    muteHttpExceptions: true
+    muteHttpExceptions: true,
   };
 
   return UrlFetchApp.fetch(profileUrl, options);
@@ -321,19 +240,19 @@ function sendReplyMsg(msgText, replyToken) {
     messages: [
       {
         type: "text",
-        text: msgText
-      }
-    ]
+        text: msgText,
+      },
+    ],
   };
   var headers = {
     "Content-Type": "application/json",
-    Authorization: "Bearer " + ACCESS_TOKEN
+    Authorization: "Bearer " + ACCESS_TOKEN,
   };
 
   var options = {
     method: "post",
     headers: headers,
-    payload: JSON.stringify(postData)
+    payload: JSON.stringify(postData),
   };
 
   var response = UrlFetchApp.fetch(replyUrl, options);
