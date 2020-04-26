@@ -1,25 +1,3 @@
-// アクセス情報は外部に記載
-var ACCESS_TOKEN = SpreadsheetApp.getActiveSpreadsheet()
-  .getSheetByName("hidden")
-  .getRange(1, 2)
-  .getValue();
-var primeGroupId = SpreadsheetApp.getActiveSpreadsheet()
-  .getSheetByName("hidden")
-  .getRange(2, 2)
-  .getValue();
-
-// 経費申請フォームURL
-var budgetFormURL = SpreadsheetApp.getActiveSpreadsheet()
-  .getSheetByName("hidden")
-  .getRange(3, 2)
-  .getValue();
-
-// 収入明細表シートURL
-// var budgetSheetURL = SpreadsheetApp.getActiveSpreadsheet()
-//   .getSheetByName("hidden")
-//   .getRange(4, 2)
-//   .getValue();
-
 /**
  * 経費申請フォームが送信された場合にグループLINEに内容を投稿する
  * @param {JSON} e フォーム送信イベントオブジェクト
@@ -58,5 +36,5 @@ function sendFormResult(e) {
 
   Logger.log(text);
   // MSG送信
-  msgSender(text, primeGroupId);
+  msgSender(text, loveGroupId);
 }

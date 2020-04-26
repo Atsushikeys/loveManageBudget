@@ -1,34 +1,5 @@
 // ゴミ出しや経費申請などの各種お知らせ機能をここに書いていく
 
-//#region フィールド変数
-
-// アクセス情報は外部に記載
-var ACCESS_TOKEN = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("hidden").getRange(1, 2).getValue();
-
-var loveGroupId = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("hidden").getRange(2, 2).getValue();
-
-// 経費申請フォームURL
-var budgetFormURL = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("hidden").getRange(3, 2).getValue();
-
-// スプレッドシートURL
-var budgetSheetURL = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("hidden").getRange(4, 2).getValue();
-
-// 市のゴミ情報 URL
-var garbageCityInfoURL = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("hidden").getRange(5, 2).getValue();
-
-//シートの情報を取得
-// `ゴミ情報`シート
-var garbageSpreadSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("ゴミ情報");
-var garbageSsLastRow = garbageSpreadSheet.getLastRow();
-var garbageSsLastColumn = garbageSpreadSheet.getLastColumn();
-
-// `経費管理表`シート
-var expenseSpreadSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("経費管理表");
-var expenseSsLastRow = expenseSpreadSheet.getLastRow();
-var expenseSsLastColumn = expenseSpreadSheet.getLastColumn();
-
-//#endregion フィールド変数
-
 //#region イベント関連メソッド
 
 /**
