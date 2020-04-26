@@ -15,10 +15,10 @@ var budgetFormURL = SpreadsheetApp.getActiveSpreadsheet()
   .getValue();
 
 // 収入明細表シートURL
-var budgetSheetURL = SpreadsheetApp.getActiveSpreadsheet()
-  .getSheetByName("hidden")
-  .getRange(4, 2)
-  .getValue();
+// var budgetSheetURL = SpreadsheetApp.getActiveSpreadsheet()
+//   .getSheetByName("hidden")
+//   .getRange(4, 2)
+//   .getValue();
 
 /**
  * 経費申請フォームが送信された場合にグループLINEに内容を投稿する

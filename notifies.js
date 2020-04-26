@@ -23,9 +23,9 @@ var garbageSsLastRow = garbageSpreadSheet.getLastRow();
 var garbageSsLastColumn = garbageSpreadSheet.getLastColumn();
 
 // `経費管理表`シート
-var garbageSpreadSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("経費管理表");
-var garbageSsLastRow = garbageSpreadSheet.getLastRow();
-var garbageSsLastColumn = garbageSpreadSheet.getLastColumn();
+var expenseSpreadSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("経費管理表");
+var expenseSsLastRow = expenseSpreadSheet.getLastRow();
+var expenseSsLastColumn = expenseSpreadSheet.getLastColumn();
 
 //#endregion フィールド変数
 
@@ -78,8 +78,8 @@ function doPost(e) {
     // 経費情報をお知らせする
     userMsg === "経費"
     ) {
-      var text = "経費合計は" + notifyExpenseSum().toLocaleString() + "円です。\n";
-      text += "詳細はこちらを確認して下さい\n";
+      var text = "経費合計は" + notifyExpenseSum().toLocaleString() + "円だよ\n";
+      text += "詳細はここから！\n";
       text += budgetSheetURL;
       sendReplyMsg(text, replyToken);
   }
@@ -154,14 +154,14 @@ function notifyGarbageKind() {
 function notifyExpenseSum() {
 
   // 経費管理表シートを配列で取得
-  var arrGarbageInfo = garbageSpreadSheet.getRange(2, 1, garbageSsLastRow, garbageSsLastColumn).getValues();
+  var arrExpenseInfo = expenseSpreadSheet.getRange(2, 1, expenseSsLastRow, expenseSsLastColumn).getValues();
 
   var priceIndex = 8;
   // 合計値格納用変数を定義
   var sumPrice = 0;
 
   // 配列を回す
-  arrGarbageInfo.forEach(function(item){
+  arrExpenseInfo.forEach(function(item){
     sumPrice += item[priceIndex];
   });
   
