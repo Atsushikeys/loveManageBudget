@@ -133,6 +133,7 @@ function notifyExpenseSum() {
 
   // 配列を回す
   arrExpenseInfo.forEach(function(item){
+    // TODO ここにparseIntを入れる(or (Integer) hogeでキャスト)のと、チェックをつけているものだけを集計？
     sumPrice += item[priceIndex];
   });
   
