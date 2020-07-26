@@ -35,5 +35,8 @@ var garbageSsLastColumn = garbageSpreadSheet.getLastColumn();
 var expenseSpreadSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("経費管理表");
 var expenseSsLastRow = expenseSpreadSheet.getLastRow();
 var expenseSsLastColumn = expenseSpreadSheet.getLastColumn();
+var isTatekaezumiColIdx = 12;
+var hikiotoshiMonthColIdx = 11;
+var expensePriceIdx = 8;
 
 //#endregion スプレッドシート オブジェクト
