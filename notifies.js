@@ -48,11 +48,11 @@ function doPost(e) {
   } else if (
     // 経費情報をお知らせする
     userMsg === "経費"
-    ) {
-      var text = "経費合計は" + notifyExpenseSum().toLocaleString() + "円だよ\n";
-      text += "詳細はここから！\n";
-      text += budgetSheetURL;
-      sendReplyMsg(text, replyToken);
+  ) {
+    var text = "経費合計は" + notifyExpenseSum().toLocaleString() + "円だよ〜\n";
+    text += "詳細はここから！\n";
+    text += budgetSheetURL;
+    sendReplyMsg(text, replyToken);
   }
 }
 
@@ -123,22 +123,20 @@ function notifyGarbageKind() {
  * @return {int} sumPrice
  */
 function notifyExpenseSum() {
-
   // 経費管理表シートを配列で取得
-  var arrExpenseInfo = expenseSpreadSheet.getRange(2, 1, expenseSsLastRow, expenseSsLastColumn).getValues();
+  var arrExpenseInfo = expenseSpreadSheet.getRange(2, 1, expenseSsLastRow - 1, expenseSsLastColumn).getValues();
 
   var priceIndex = 8;
   // 合計値格納用変数を定義
   var sumPrice = 0;
 
   // 配列を回す
-  arrExpenseInfo.forEach(function(item){
+  arrExpenseInfo.forEach(function (item) {
     // TODO ここにparseIntを入れる(or (Integer) hogeでキャスト)のと、チェックをつけているものだけを集計？
-    sumPrice += item[priceIndex];
+    sumPrice += parseInt(item[priceIndex]);
   });
-  
+
   return sumPrice;
-  
 }
 
 //#endregion 家計簿お知らせ関連メソッド
