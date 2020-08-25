@@ -49,20 +49,14 @@ function doPost(e) {
     // 経費情報をお知らせする
     userMsg === "経費"
   ) {
-    var text = "今までの経費合計は" + notifyExpenseSum().toLocaleString() + "円\n";
+    var text = "口座残高は" + notifyAmount().toLocaleString() + "円\n\n";
+
+    text += "今までの経費合計は" + notifyExpenseSum().toLocaleString() + "円\n";
     text += "月ごとの未立替金は\n" + notifyMitatekae() + "だよ〜\n\n";
     text += "詳細はここから！\n";
     text += budgetSheetURL;
     sendReplyMsg(text, replyToken);
-  } else if (
-    // 未建て替えサマリ情報の表示
-    userMsg === "立て替え" ||
-    userMsg === "立替"
-  ) {
-    var text = "未建て替え情報を表示するよ！\n\n";
-    text += notifyMitatekae();
-    sendReplyMsg(text, replyToken);
-  }
+  } 
 }
 
 //#endregion イベント関連メソッド
@@ -128,7 +122,16 @@ function notifyGarbageKind() {
 //#region 家計簿お知らせ関連メソッド
 
 /**
- * 経費の合計額をお知らせする
+ * 口座残高を取得する
+ * @return {int} price
+ */
+function notifyAmount() {
+  var price = nyushukkinSpreadSheet.getRange(nyushukkinSsLastRow, nyushukkinAmountIdx + 1).getValue();
+  return price;
+}
+
+/**
+ * 経費の合計額を取得する
  * @return {int} sumPrice
  */
 function notifyExpenseSum() {
@@ -154,19 +157,19 @@ function notifyMitatekae() {
   // 経費管理表シートを配列で取得
   var arrExpenseInfo = expenseSpreadSheet.getRange(2, 1, expenseSsLastRow - 1, expenseSsLastColumn).getValues();
   var arrMitatekae = arrExpenseInfo.filter(function (item) {
-    return !item[isTatekaezumiColIdx];
+    return !item[expenseIsTatekaezumiColIdx];
   });
 
   // 未建て替えの引き落とし月セットを作成
   var monthSet = new Set();
   arrMitatekae.forEach(function (item) {
-    if(item[hikiotoshiMonthColIdx] == ""){
-      monthSet.add("引き落としなし");
-      return
-    };
-    var month = item[hikiotoshiMonthColIdx].getMonth() + 1; // getMonthは0始まりなので実際の月-1
+    if (item[expenseHikiotoshiMonthColIdx] == "") {
+      monthSet.add(expenseStrNonHikiotoshi);
+      return;
+    }
+    var month = item[expenseHikiotoshiMonthColIdx].getMonth() + 1; // getMonthは0始まりなので実際の月-1
     var monthStr = month < 10 ? "0" + month.toString() : month.toString();
-    monthSet.add(item[hikiotoshiMonthColIdx].getFullYear().toString() + "/" + monthStr);
+    monthSet.add(item[expenseHikiotoshiMonthColIdx].getFullYear().toString() + "/" + monthStr);
   });
 
   var arrSumMonth = [];
@@ -182,15 +185,15 @@ function notifyMitatekae() {
   for (var i = 0; i < arrSumMonth.length; i++) {
     var sum = 0;
     arrMitatekae.forEach(function (item) {
-      if(item[hikiotoshiMonthColIdx] == ""){
+      if (item[expenseHikiotoshiMonthColIdx] == "") {
         // 引き落としなしのとき以外は次のループへ
-        if(arrSumMonth[i] !== "引き落としなし") return;
+        if (arrSumMonth[i] !== expenseStrNonHikiotoshi) return;
         sum += item[expensePriceIdx];
-        return
-      };
-      var month = item[hikiotoshiMonthColIdx].getMonth() + 1;
+        return;
+      }
+      var month = item[expenseHikiotoshiMonthColIdx].getMonth() + 1; // getMonthは0始まりなので実際の月-1
       var monthStr = month < 10 ? "0" + month.toString() : month.toString();
-      var ym = item[hikiotoshiMonthColIdx].getFullYear().toString() + "/" + monthStr;
+      var ym = item[expenseHikiotoshiMonthColIdx].getFullYear().toString() + "/" + monthStr;
 
       // yyyyMMが一致するなら合計値に追加
       sum += arrSumMonth[i] === ym ? item[expensePriceIdx] : 0;

@@ -35,8 +35,15 @@ var garbageSsLastColumn = garbageSpreadSheet.getLastColumn();
 var expenseSpreadSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("経費管理表");
 var expenseSsLastRow = expenseSpreadSheet.getLastRow();
 var expenseSsLastColumn = expenseSpreadSheet.getLastColumn();
-var isTatekaezumiColIdx = 12;
-var hikiotoshiMonthColIdx = 11;
+var expenseIsTatekaezumiColIdx = 12;
+var expenseHikiotoshiMonthColIdx = 11;
 var expensePriceIdx = 8;
+var expenseStrNonHikiotoshi = "未定";
+
+// `入出金履歴`シート
+var nyushukkinSpreadSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("入出金履歴");
+var nyushukkinSsLastRow = nyushukkinSpreadSheet.getLastRow();
+var nyushukkinSsLastColumn = nyushukkinSpreadSheet.getLastColumn();
+var nyushukkinAmountIdx = 4;
 
 //#endregion スプレッドシート オブジェクト
